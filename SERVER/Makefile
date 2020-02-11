@@ -1,7 +1,7 @@
 CC = g++
 CFLAGS = -Wall 
 DEPS = header.h 
-OBJ = server.o
+OBJ = 2018201103_assign_1_server.o
 %.o: %.cpp $(DEPS)
 	$(CC) $(CFLAGS) -c -o $@ $< -lssl -lcrypto -lpthread
 
