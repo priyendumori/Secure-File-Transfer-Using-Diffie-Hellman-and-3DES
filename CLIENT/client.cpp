@@ -242,11 +242,8 @@ void send_disconnect(){
 	Disconnect dis;
 	send_msg.body.disconnect = dis;
 
-	cout<<"sending disconnect"<<endl;
 	send(sock, &send_msg, sizeof(Msg), 0);
-	cout<<"sent, closing socket"<<endl;
     // close(sock);
-	cout<<"closed socket"<<endl;
 }
 
 void request_file(){
@@ -255,9 +252,10 @@ void request_file(){
 	string file_name;
 	cin>>file_name;
 
+	string file_path = "./downloads/"+file_name;
 
 	ofstream myfile;
-	myfile.open (file_name,ios::out | ios::binary);
+	myfile.open (file_path,ios::out | ios::binary);
 
 	int src_addr, dest_addr;
 	Msg send_msg;
@@ -286,9 +284,9 @@ void request_file(){
 		}
 		else{
 			if(recv_msg.hdr.opcode==DISCONNECT){
-				cout<<"File not found at server"<<endl;
-				cout<<"Sedning disconnect"<<endl;
+				cout<<endl<<"File not found at server"<<endl;
 				send_disconnect();
+				break;
 			}
 			else if(recv_msg.hdr.opcode==ENCMSG){
 				unsigned char out[BUFSIZE], back[BUFSIZE];
@@ -403,7 +401,6 @@ int main(int argc, char* argv[])
 		int ch;
 		cout<<"\n\n";
 		cout<<"1. Request a file "<<endl;
-		cout<<"2.  "<<endl;
 		cout<<"0. Exit"<<endl;
 		cout<<"\nEnter your input : "<<endl;
 		cin>>ch;
@@ -413,9 +410,6 @@ int main(int argc, char* argv[])
 				// loginrequest(argv[1]);
 				request_file();
 				break;
-			case 2:
-				// authenticationAndRequestFile(argv[1]);
-				break;
 			case 0:
 				flag=0;
 				break;
@@ -424,7 +418,7 @@ int main(int argc, char* argv[])
 				break;
 		}
 	}while(flag);
-	cout<<"\n\nThank You, Have a hapy CryptoDay !!!"<<endl;
+	cout<<"\n\nThank You, Have a happy CryptoDay !!!"<<endl;
 
 	return 0;
 }

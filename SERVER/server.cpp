@@ -1,4 +1,4 @@
-#include "des.cpp"
+#include "header.h"
 
 
 // int caesar_key;
@@ -8,7 +8,7 @@ struct sockaddr_in address;
 int addrlen = sizeof(address);
 char encoding_scheme[]={' ','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z',',','.','?','0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','!'};
 
-ull des_key[3]; 
+ 
 
 /*
     returns size of the file
@@ -110,7 +110,7 @@ Write Log into serverlog.txt file
 /*
 Generate Public key and establish secreate key (caesar key) with given socket_client
 */
-void extractDataAndGenerateKeys(int new_socket)
+void extractDataAndGenerateKeys(int new_socket, vector<ull> &des_key)
 {
     for(int it=0;it<3;it++){
         char ctos_buff[MAX];
@@ -184,66 +184,6 @@ int sendMsgtoClient(Msg reply, int new_socket)
 	return status;
 }
 
-
-/*
-This function gives SERVICEREPLY to client
-*/
-// void doServideReply(Msg recv_msg,int caesar_key,int new_socket)
-// {
-//     string id = string(decrypttion(recv_msg.ID,caesar_key));
-//     string receivPass = decrypttion(recv_msg.password,caesar_key);
-//     char filename[30];
-//     strcpy(filename,decrypttion(recv_msg.file,caesar_key));
-//     cout<<"\n*** (in  SERVICEREPLY)  Received Msg'Data from client  : ****"<<endl;
-//     cout<<"ID       =>  "<<"CipherText  : "<<recv_msg.ID<<"  ::  PlainText : "<<id<<endl;
-//     cout<<"FileName =>  "<<"CipherText  : "<<recv_msg.file<<"  ::  PlainText : "<<string(filename)<<endl;
-//     cout<<"sourceIP : "<<recv_msg.hdr.s_addr<<endl;
-//     cout<<"DestIP : "<<recv_msg.hdr.d_addr<<endl;
-//     cout<<"**************************************************************"<<endl;
-
-//     char ctos_buff[MAX];
-//     Hdr servRepHrd;
-// 	servRepHrd.opcode = 60;
-// 	servRepHrd.s_addr = recv_msg.hdr.d_addr;
-// 	servRepHrd.d_addr = recv_msg.hdr.s_addr;
-
-//     Msg servRepMsg;
-// 	servRepMsg.hdr = servRepHrd;
-//     strcpy(servRepMsg.file,recv_msg.file);
-    
-//     FILE *fp;
-// 	fp=fopen(filename,"r");
-// 	if(fp == NULL)
-// 	{
-// 		printf("\nError : No Such File Exists!\n");
-//         servRepMsg.status=0;
-//         sendMsgtoClient(servRepMsg,new_socket);
-//         return;
-// 	}
-
-//     Msg rec_temp;
-//     while((fgets(ctos_buff,sizeof(ctos_buff),fp)) != NULL)
-//     {
-//         strcpy(servRepMsg.buf , encryption(ctos_buff,caesar_key));
-//         servRepMsg.status=1;
-//         sendMsgtoClient(servRepMsg,new_socket);
-//         cout<<"SERVICEDONE"<<endl;
-
-//         int nbytes = recv(new_socket, &rec_temp, sizeof(Msg), 0);
-//         if (nbytes == -1) {
-//             fprintf(stderr, "*** Server error: unable to receive\n");
-//             break;
-//         }
-//     }
-//     //sending closing command at the end of FILE transfered
-//     Msg closingMsg;
-//     closingMsg.status=2;
-//     sendMsgtoClient(closingMsg,new_socket);	
-
-// 	fclose(fp);
-// 	printf("Data Sent Successfully!\n");
-//     return;
-// }
 
 bool file_present(string s){
     DIR *dir;
@@ -335,7 +275,7 @@ void send_request_comp(int client_socket){
 	send(client_socket, &send_msg, sizeof(Msg), 0);
 }
 
-void send_file(string file_name, int client_socket){
+void send_file(string file_name, int client_socket, vector<ull> &des_key){
 
     file_name = "./files/"+file_name;
 
@@ -475,9 +415,10 @@ void send_not_found(int client_socket){
 
 void *serverservice(void *socket_desc)
 {
+    vector<ull> des_key(3);
     int new_socket = *(int *)socket_desc;
     cout<<"new connection with socket id : "<<new_socket<<endl<<endl;
-    extractDataAndGenerateKeys(new_socket);
+    extractDataAndGenerateKeys(new_socket,des_key);
 
     // cout<<"The three keys are:"<<endl;
     // cout<<des_key[0]<<" "<<des_key[1]<<" "<<des_key[2]<<endl;
@@ -504,7 +445,7 @@ void *serverservice(void *socket_desc)
             // cout<<des_key[0]<<" "<<des_key[1]<<" "<<des_key[2]<<endl;
             string s = recv_msg.body.reqserv.file_name;
             if(file_present(s)){
-                send_file(s,new_socket);
+                send_file(s,new_socket,des_key);
 
             }
             else{
